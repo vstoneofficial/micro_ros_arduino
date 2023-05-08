@@ -5,6 +5,8 @@ action_msgs/GoalStatusArray.msg
 actionlib_msgs/GoalID.msg
 actionlib_msgs/GoalStatus.msg
 actionlib_msgs/GoalStatusArray.msg
+amir_interfaces/AmirCmd.msg
+amir_interfaces/AmirSensor.msg
 builtin_interfaces/Duration.msg
 builtin_interfaces/Time.msg
 composition_interfaces/ListNodes.srv
