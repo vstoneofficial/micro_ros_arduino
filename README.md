@@ -9,7 +9,7 @@
 - [追加機能](#追加機能)
 
 ## 動作確認環境
-[Arduino core for the ESP32 (v2.0.2)](https://github.com/espressif/arduino-esp32/releases/tag/2.0.2)
+[Arduino core for the ESP32 (v2.0.13)](https://github.com/espressif/arduino-esp32/releases/tag/2.0.13)
 
 ## Arduino IDEへのライブラリの追加
 ### ZIP形式の ライブラリをインストール
@@ -21,6 +21,7 @@
 
 ## 追加機能
 - [AMIR 740](https://www.vstone.co.jp/products/amir740/index.html)用の専用メッセージ型を追加。
+- ESP32S3に対応。
 
 ---
 
