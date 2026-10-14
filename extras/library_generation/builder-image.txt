@@ -1,0 +1,1 @@
+microros/micro_ros_static_library_builder@sha256:f06c5d5ade3136f781404277e6e3e2ad0de8e720e0cccc0a8253bfa7ab3a80de

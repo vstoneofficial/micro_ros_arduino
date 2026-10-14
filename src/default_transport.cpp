@@ -33,7 +33,7 @@ extern "C"
 
   bool arduino_transport_open(struct uxrCustomTransport * transport)
   {
-    Serial.begin(115200);
+    Serial.begin(921600);
     return true;
   }
 

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stop before publishing partial headers/archives if dependency setup or a build fails.
+set -eo pipefail
+
 PLATFORMS=()
 while getopts "p:" o; do
     case "$o" in
@@ -10,18 +13,9 @@ while getopts "p:" o; do
 done
 
 if [ $OPTIND -eq 1 ]; then
-    PLATFORMS+=("opencr1")
-    PLATFORMS+=("teensy4")
-    PLATFORMS+=("teensy32")
-    PLATFORMS+=("teensy35")
-    PLATFORMS+=("teensy36")
-    PLATFORMS+=("cortex_m0")
-    PLATFORMS+=("cortex_m3")
-    PLATFORMS+=("cortex_m4")
-    # PLATFORMS+=("portenta-m4")
-    PLATFORMS+=("portenta-m7")
-    PLATFORMS+=("kakutef7-m7")
+    # This fork distributes AMIR-enabled ESP32 and ESP32-S3 archives.
     PLATFORMS+=("esp32")
+    PLATFORMS+=("esp32s3")
 fi
 
 shift $((OPTIND-1))
@@ -42,8 +36,6 @@ pushd firmware/mcu_ws > /dev/null
 
     # Workaround: Copy just tf2_msgs
     git clone -b jazzy https://github.com/ros2/geometry2
-    cp -R geometry2/tf2_msgs ros2/tf2_msgs
-    rm -rf geometry2
 
     # Import user defined packages
     mkdir extra_packages
@@ -52,10 +44,26 @@ pushd firmware/mcu_ws > /dev/null
         vcs import --input extra_packages.repos
     popd > /dev/null
 
+    python3 /project/extras/library_generation/pin_dependencies.py checkout \
+        /project/extras/library_generation/upstream-jazzy.lock /uros_ws/firmware
+    TF2_REVISION=$(git -C geometry2 rev-parse HEAD)
+    cp -R geometry2/tf2_msgs ros2/tf2_msgs
+    rm -rf geometry2
+
 popd > /dev/null
 
+# create_firmware_ws builds host-side generators before returning. Rebuild them
+# from the same locked revisions as the target sources, not the moving branches.
+(
+    RTOS=generate_lib
+    source "$(ros2 pkg prefix micro_ros_setup)/lib/micro_ros_setup/clean_env.sh"
+    cd firmware/dev_ws
+    rm -rf build install log
+    colcon build
+)
+
 ######## Clean and source ########
-find /project/src/ ! -name micro_ros_arduino.h ! -name *.c ! -name *.cpp ! -name *.c.in -delete
+find /project/src/ -mindepth 1 ! -name micro_ros_arduino.h ! -name micro_ros_arduino_jazzy.h ! -name '*.c' ! -name '*.cpp' ! -name '*.c.in' -delete
 
 ######## Build for OpenCR  ########
 if [[ " ${PLATFORMS[@]} " =~ " opencr1 " ]]; then
@@ -251,8 +259,10 @@ popd > /dev/null
 
 apt -y install rsync
 for var in ${INCLUDE_ROS2_PACKAGES}; do
-    rsync -r /project/src/${var}/${var}/* /project/src/${var}/ > /dev/null 2>&1
-    rm -rf /project/src/${var}/${var}/ > /dev/null 2>&1
+    if [ -d /project/src/${var}/${var} ]; then
+        rsync -r /project/src/${var}/${var}/ /project/src/${var}/
+        rm -rf /project/src/${var}/${var}/
+    fi
 done
 
 ######## Generate extra files ########
@@ -264,8 +274,12 @@ sort -o /project/available_ros2_types /project/available_ros2_types
 cd firmware
 echo "" > /project/built_packages
 for f in $(find $(pwd) -name .git -type d); do pushd $f > /dev/null; echo $(git config --get remote.origin.url) $(git rev-parse HEAD) >> /project/built_packages; popd > /dev/null; done;
+echo "https://github.com/ros2/geometry2.git ${TF2_REVISION}" >> /project/built_packages
 # sort it so that the result order is reproducible
 sort -o /project/built_packages /project/built_packages
+
+python3 /project/extras/library_generation/pin_dependencies.py verify \
+    /project/extras/library_generation/upstream-jazzy.lock /project/built_packages
 
 ######## Fix permissions ########
 sudo chmod -R 777 .

@@ -1,146 +1,141 @@
-![banner](.images/banner-dark-theme.png#gh-dark-mode-only)
-![banner](.images/banner-light-theme.png#gh-light-mode-only)
+# ヴイストン製ロボット用micro-ROS Arduinoライブラリ（ROS 2 Jazzy）
 
-# micro-ROS for Arduino
+ヴイストン製の台車ロボットやAMIR 740で、ArduinoのスケッチからROS 2 Jazzyと通信するためのライブラリです。
+[micro_ros_arduino v2.0.8-jazzy](https://github.com/micro-ROS/micro_ros_arduino/releases/tag/v2.0.8-jazzy)を基に、ヴイストン製ロボット用のメッセージ型を追加しています。
 
-This is a micro-ROS library for baremetal projects based on Arduino IDE or Arduino CLI.
+配布ZIPにはESP32・ESP32-S3向けの事前ビルド済みライブラリ、メッセージのヘッダー、サンプルスケッチを同梱しています。
+ReleaseページからZIPをダウンロードし、Arduinoの`libraries`フォルダに配置してご利用ください。
 
-As the build process for ROS 2 and micro-ROS is based on custom meta-build system tools and [CMake](https://cmake.org/), this library is provided as a precompiled library. However, users can rebuild their own precompiled libraries in order to modify the micro-ROS configuration or [RMW parameters](https://micro.ros.org/docs/tutorials/advanced/microxrcedds_rmw_configuration/) by customizing the respective [.meta file](https://github.com/micro-ROS/micro_ros_arduino/tree/main/extras/library_generation).
+台車の通信確認と使用方法は、台車の標準ライブラリおよび付属ドキュメントを参照してください。
 
-- [micro-ROS for Arduino](#micro-ros-for-arduino)
-  - [Supported boards](#supported-boards)
-  - [How to use the precompiled library](#how-to-use-the-precompiled-library)
-    - [Arduino IDE](#arduino-ide)
-    - [PlatformIO](#platformio)
-  - [How to build the precompiled library](#how-to-build-the-precompiled-library)
-  - [Patch Arduino board for support precompiled libraries](#patch-arduino-board-for-support-precompiled-libraries)
-    - [Patch Teensyduino](#patch-teensyduino)
-    - [Patch SAM](#patch-sam)
-  - [Purpose of the Project](#purpose-of-the-project)
-  - [License](#license)
-  - [Known Issues/Limitations](#known-issueslimitations)
+## 目次
 
-## Supported boards
+- [利用環境](#利用環境)
+- [Arduino IDEへの導入](#arduino-ideへの導入)
+- [スケッチでの使い方](#スケッチでの使い方)
+- [PC側の準備](#pc側の準備)
+- [同梱のメッセージとサンプル](#同梱のメッセージとサンプル)
+- [お問い合わせ](#お問い合わせ)
 
-Supported boards are:
+## 利用環境
 
-| Board                                                                                                       | Min version | State      | Details                                                                                              | .meta file               |
-| ----------------------------------------------------------------------------------------------------------- | ----------- | ---------- | ---------------------------------------------------------------------------------------------------- | ------------------------ |
-| [Arduino Portenta H7 M7 Core](https://store.arduino.cc/portenta-h7)                                         | v1.8.5      | Supported  | Official Arduino support                                                                             | `colcon.meta`            |
-| [Arduino Nano RP2040 Connect](https://docs.arduino.cc/hardware/nano-rp2040-connect)                         | v1.8.5      | Supported  | Official Arduino support                                                                             | `colcon_verylowmem.meta` |
-| [OpenCR](https://emanual.robotis.com/docs/en/parts/controller/opencr10/)                                    | v1.4.16     | Supported  | [Based on custom board](https://emanual.robotis.com/docs/en/parts/controller/opencr10/#arduino-ide)  | `colcon.meta`            |
-| [Teensy 4.0](https://www.pjrc.com/store/teensy40.html)                                                      | v1.8.5      | Not tested | [Based on Teensyduino (1.58.x)](https://www.pjrc.com/arduino-ide-2-0-0-teensy-support/)                       | `colcon.meta`            |
-| [Teensy 4.1](https://www.pjrc.com/store/teensy41.html)                                                      | v1.8.5      | Supported  | [Based on Teensyduino (1.58.x)](https://www.pjrc.com/arduino-ide-2-0-0-teensy-support/)                       | `colcon.meta`            |
-| [Teensy 3.2/3.1](https://www.pjrc.com/store/teensy32.html)                                                  | v1.8.5      | Supported  | [Based on Teensyduino (1.58.x)](https://www.pjrc.com/arduino-ide-2-0-0-teensy-support/)                       | `colcon_lowmem.meta`     |
-| [Teensy 3.5](https://www.pjrc.com/store/teensy35.html)                                                      | v1.8.5      | Not tested | [Based on Teensyduino (1.58.x)](https://www.pjrc.com/arduino-ide-2-0-0-teensy-support/)                       | `colcon_lowmem.meta`     |
-| [Teensy 3.6](https://www.pjrc.com/store/teensy36.html)                                                      | v1.8.5      | Supported  | [Based on Teensyduino (1.58.x)](https://www.pjrc.com/arduino-ide-2-0-0-teensy-support/)                       | `colcon_lowmem.meta`     |
-| [ESP32 Dev Module](https://docs.espressif.com/projects/arduino-esp32/en/latest/boards/ESP32-DevKitC-1.html) | v1.8.5      | Supported  | [Arduino core for the ESP32 (v2.0.2)](https://github.com/espressif/arduino-esp32/releases/tag/2.0.2) | `colcon.meta`            |
+| 項目 | この配布物の対象環境 |
+| --- | --- |
+| マイコン | ESP32、ESP32-S3 |
+| Arduino用ボードパッケージ | [Arduino-ESP32 2.0.13](https://github.com/espressif/arduino-esp32/releases/tag/2.0.13) |
+| PC側のROS 2 | Jazzy |
+| micro-ROS Agent | Jazzy |
+| 標準シリアル通信 | 921600 bps |
 
-Community contributed boards are:
+Arduino-ESP32 3.xはこの配布物では未検証です。
+ボードの選択や接続方法は、お使いのロボットの説明書も併せてご確認ください。
 
-| Board                                                                                    | Min version | Contributor                                            | Details                                                                   | .meta file               |
-| ---------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------ |
-| [Arduino Due](https://store.arduino.cc/arduino-due)                                      | -           | [@lukicdarkoo](https://github.com/lukicdarkoo)         |                                                                           | `colcon_verylowmem.meta` |
-| [Arduino Zero](https://store.arduino.cc/arduino-zero)                                    | -           | [@lukicdarkoo](https://github.com/lukicdarkoo)         |                                                                           | `colcon_verylowmem.meta` |
-| [Kakute F7](http://www.holybro.com/product/kakute-f7-aio-v1-5/)                          | -           | [@amfern](https://github.com/amfern)                   |                                                                           | `colcon.meta`            |
-| [STM32-E407](https://www.olimex.com/Products/ARM/ST/STM32-E407/resources/STM32-E407.pdf) | -           | [@dominikn](https://github.com/dominikn)               |                                                                           | `colcon.meta`            |
-| [Wio Terminal](https://wiki.seeedstudio.com/Wio-Terminal-Getting-Started/)               | -           | [@maehara-keisuke](https://github.com/maehara-keisuke) |                                                                           | `colcon.meta`            |
-| [Raspberry Pi Pico](https://www.raspberrypi.com/documentation/microcontrollers/)         | -           | [@maehara-keisuke](https://github.com/maehara-keisuke) | with [ESP-AT](https://www.espressif.com/en/products/sdks/esp-at/overview) | `colcon_verylowmem.meta` |
-| [Seeed Studio XIAO SAMD21](https://wiki.seeedstudio.com/Seeeduino-XIAO/)                 | -           | [@maehara-keisuke](https://github.com/maehara-keisuke) | with [ESP-AT](https://www.espressif.com/en/products/sdks/esp-at/overview) | `colcon_verylowmem.meta` |
-| [Seeed Studio XIAO RP2040](https://wiki.seeedstudio.com/XIAO-RP2040/)                    | -           | [@maehara-keisuke](https://github.com/maehara-keisuke) | with [ESP-AT](https://www.espressif.com/en/products/sdks/esp-at/overview) | `colcon_verylowmem.meta` |
-| [Arduino Giga R1](https://store.arduino.cc/products/giga-r1-wifi)                        | -           | [@gbr1](https://github.com/gbr1)                       |                                                                           | `colcon.meta`            |
-| [Arduino UNO R4 WiFi](https://store.arduino.cc/products/uno-r4-wifi)                     | -           | [@gbr1](https://github.com/gbr1)                       |                                                                           | `colcon.meta`            |
-| [Arduino UNO R4 Minima](https://store.arduino.cc/products/uno-r4-minima)                 | -           | [@gbr1](https://github.com/gbr1)                       |                                                                           | `colcon.meta`            |
-| [Arduino Opta](https://store.arduino.cc/products/opta-wifi)                 | -           | [@gbr1](https://github.com/gbr1)                       |                                                                           | `colcon.meta`            |
+### 実機で確認した構成
 
+以下の構成で、対応スケッチの再ビルド、実機への書き込み、接続テストの成功を確認しています（確認報告日: 2026-10-08）。
 
-You can find the available precompiled ROS 2 types for messages and services in [available_ros2_types](available_ros2_types).
+| ロボット | 制御基板 |
+| --- | --- |
+| メガローバーVer.3.0 | VS-WRC058 |
+| メガローバーF120A | VS-WRC058 |
 
-## How to use the precompiled library
+## Arduino IDEへの導入
 
-### Arduino IDE
+1. [Releaseページ](https://github.com/vstoneofficial/micro_ros_arduino/releases)を開き、**Jazzy用**リリースのAssetsからArduino用の配布ZIPをダウンロードします。
+2. ZIPを解凍し、中にある`micro_ros_arduino_jazzy`フォルダを取り出します。
+3. Arduinoのスケッチブック内の`libraries`フォルダへ、そのフォルダを丸ごと配置します。`libraries`がない場合は作成してください。
+4. Arduino IDEを起動し直します。
 
-Go to [link to release section](https://github.com/micro-ROS/micro_ros_arduino/releases) and download the last release of micro-ROS library for Arduino.
+スケッチブックの場所はArduino IDEの設定画面で確認できます。
+通常の配置例は次のとおりです。フォルダ名は`libraries`です。
 
-Include it in your project using `Sketch -> Include library -> Add .ZIP Library...`
-
-You can test micro-ROS examples located in this repo examples folder.
-
-Remember that is possible to use a micro-ROS Agent just with this docker command:
-
-```bash
-# Serial micro-ROS Agent
-docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:jazzy serial --dev [YOUR BOARD PORT] -v6
-```
-### PlatformIO
-
-PlatformIO support for this repository has been deprecated in favor of its own build system: [micro_ros_platformio](https://github.com/micro-ROS/micro_ros_platformio)
-
-## How to build the precompiled library
-
-If you need to add custom packages or types, or customize any internal parameter of the micro-ROS stack, you will need to recompile this library from source code:
-
-```bash
-docker pull microros/micro_ros_static_library_builder:jazzy
-docker run -it --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=extras microros/micro_ros_static_library_builder:jazzy
+```text
+Arduino/
+└─ libraries/
+   └─ micro_ros_arduino_jazzy/
+      ├─ library.properties
+      ├─ examples/
+      ├─ extras/
+      └─ src/
+         ├─ micro_ros_arduino_jazzy.h
+         ├─ esp32/libmicroros.a
+         └─ esp32s3/libmicroros.a
 ```
 
-Optionally a specific single target can be built using the `-p <LIBRARY_TARGET>` argument like this:
+`micro_ros_arduino_jazzy`の直下に`library.properties`があることを確認してください。
+ZIP内のフォルダをさらに別のフォルダで囲むと、Arduino IDEから正しく認識されない場合があります。
+スケッチブックの場所の確認方法は[Arduino公式の案内](https://support.arduino.cc/hc/en-us/articles/4412950938514-Open-the-Sketchbook-folder)を参照してください。
 
-```bash
-docker run -it --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=extras microros/micro_ros_static_library_builder:jazzy -p <LIBRARY_TARGET>
+### 既存ライブラリを更新する場合
+
+Arduino IDEを閉じ、既存の同じROS 2版のライブラリフォルダを`libraries`の外へバックアップしてから、新しいフォルダを丸ごと配置してください。
+古いフォルダへのファイルの上書きだけで更新すると、旧版だけに存在するヘッダーが残ることがあります。
+Arduino IDEを起動し直し、対応スケッチを再ビルドして、USB/UARTで実機へ書き込んでください。
+
+## スケッチでの使い方
+
+スケッチの先頭で、Jazzy用の入口ヘッダーを読み込みます。台車のエンコーダーメッセージを使う場合の例です。
+
+```cpp
+#include <micro_ros_arduino_jazzy.h>
+#include <rcl/rcl.h>
+#include <rclc/rclc.h>
+#include <vs_rdrover_interfaces/msg/encoder_stamped.h>
 ```
 
-Available targets `LIBRARY_TARGETS` are available on the [top of the extras/library_generation/library_generation.sh file](https://github.com/micro-ROS/micro_ros_arduino/blob/main/extras/library_generation/library_generation.sh#L13-L24)
+`micro_ros_arduino_jazzy.h`は、すべてのROSヘッダーより前に記述してください。
+複数の`.cpp`に分ける場合は、ROSを使用する各ファイルで同じ入口ヘッダーを読み込みます。
 
-Folders added to `extras/library_generation/extra_packages` and entries added to `extras/library_generation/extra_packages/extra_packages.repos` will be taken into account by this build system.
-This should be used for example when adding custom messages types or custom micro-ROS packages.
+### Humble版もインストールしている場合
 
-You can [configure many parameters](https://micro.ros.org/docs/tutorials/advanced/microxrcedds_rmw_configuration/) of the library by editing the respective `.meta` file in the `extras/library_generation/` directory.
+Humble版は`Arduino/libraries/micro_ros_arduino_humble`、Jazzy版は`Arduino/libraries/micro_ros_arduino_jazzy`に配置して共存できます。
+1つのスケッチでは1つのROS 2版を選び、PC側のROS 2とAgentも同じ版に合わせてください。
+Jazzy用スケッチでは`micro_ros_arduino_jazzy.h`を使用します。
+従来の`micro_ros_arduino.h`だけを読み込むスケッチは、版を明示する入口ヘッダーへ変更してください。
+同じROS 2版の古いライブラリを別名で重複してインストールしている場合は、使用する版だけを残してください。
 
-## Patch Arduino board for support precompiled libraries
-### Patch Teensyduino
+## PC側の準備
 
-Go inside your Arduino + Teensyduino installation and replace `platform.txt`:
+ROS 2 Jazzyとmicro-ROS Agentの動作環境を用意します。
+ROS 2の導入は[ROS 2 Jazzyの公式案内](https://docs.ros.org/en/jazzy/Installation.html)を参照してください。
+
+台車の`EncoderStamped`をPC側で読み取るには、独立した[`vs_rdrover_interfaces`リポジトリ](https://github.com/vstoneofficial/vs_rdrover_interfaces/tree/jazzy)から、PC側のROS 2ワークスペースへパッケージを導入します。
+
+
+AMIRのメッセージを使う場合は、同梱の[`amir_interfaces`](extras/library_generation/extra_packages/amir_interfaces)をPC側へコピーし、`colcon build --packages-select amir_interfaces`でビルドします。
+
+### micro-ROS Agentの起動
+
+標準のシリアル通信は**921600 bps**です。Agent側も同じ速度に設定します。
+Linux上のDockerでAgentを起動する例です。Dockerの利用環境を用意し、ボードをUSB/UARTで接続してから実行してください。
 
 ```bash
-export TEENSYDUINO_VERSION=[Your Teensyduino library version, e.g: 1.58.0]
-export ARDUINO_PATH=[Your Arduino + Teensyduino path]
-cd $ARDUINO_PATH/hardware/avr/$TEENSYDUINO_VERSION/
-curl https://raw.githubusercontent.com/micro-ROS/micro_ros_arduino/main/extras/patching_boards/platform_teensy.txt > platform.txt
+docker run -it --rm --net=host --device=/dev/ttyUSB0 \
+  microros/micro-ros-agent:jazzy serial --dev /dev/ttyUSB0 -b 921600
 ```
 
-The patch applies the changes detailed on the first two sections of this post: [Solution for adding support for pre-compiled Libraries](https://forum.pjrc.com/threads/63256-Solution-for-adding-support-for-pre-compiled-Libraries)
+`/dev/ttyUSB0`は、お使いのボードのシリアルポートに合わせて、上の2か所を変更してください。
+例えば`/dev/ttyACM0`として認識されるボードもあります。
+Agentと通信している間は、同じポートを使うArduino IDEのシリアルモニターを閉じてください。
 
-### Patch SAM
 
-Go inside your Arduino installation and replace `platform.txt`:
+## 同梱のメッセージとサンプル
 
-```bash
-export ARDUINO_PATH=[Your Arduino path]
-cd $ARDUINO_PATH/hardware/sam/1.6.12/
-curl https://raw.githubusercontent.com/micro-ROS/micro_ros_arduino/main/extras/patching_boards/platform_arduinocore_sam.txt > platform.txt
-```
+| 用途 | ROS 2の型 | サンプル |
+| --- | --- | --- |
+| 研究開発用台車のエンコーダー | `vs_rdrover_interfaces/msg/EncoderStamped` | [micro-ros_encoder_stamped](examples/micro-ros_encoder_stamped/micro-ros_encoder_stamped.ino) |
+| AMIR 740の指令・センサー値 | `amir_interfaces/msg/AmirCmd`、`amir_interfaces/msg/AmirSensor` | [micro-ros_amir](examples/micro-ros_amir/micro-ros_amir.ino) |
 
-## Purpose of the Project
+`EncoderStamped`は取得時刻と可変長配列のエンコーダーカウント値を持ちます。
 
-This software is not ready for production use. It has neither been developed nor
-tested for a specific use case. However, the license conditions of the
-applicable Open Source licenses allow you to adapt the software to your needs.
-Before using it in a safety relevant setting, make sure that the software
-fulfills your requirements and adjust it according to any applicable safety
-standards, e.g., ISO 26262.
+AMIRの両メッセージは、`float32[6] angle`（mrad）と`float32[6] vel`（mrad/s）です。
+`micro-ros_amir`は指令の受信とゼロ値の疑似センサー送信を行う通信例です。
 
-## License
 
-This repository is open-sourced under the Apache-2.0 license. See the [LICENSE](LICENSE) file for details.
+## お問い合わせ
 
-For a list of other open-source components included in this repository,
-see the file [3rd-party-licenses.txt](3rd-party-licenses.txt).
+ヴイストン製ロボットをご購入のお客様からの不具合のご報告やご相談は、
+[ヴイストンのお問い合わせ窓口](https://www.vstone.co.jp/contact/index.html)へお寄せください。
+製品名、使用するROS 2版、ライブラリのバージョン、ボードとArduino-ESP32のバージョン、
+発生状況・再現手順・エラーログをお知らせいただくと、確認がスムーズになります。
 
-## Known Issues/Limitations
-
-- When using provided precompiled libraries, users should take into account the already configured static memory pools in middleware layers. [More info here](https://micro.ros.org/docs/tutorials/advanced/microxrcedds_rmw_configuration/).
-- micro-ROS transports should be refactored in order to provide a pluggable mechanisms. Only USB serial transports are provided.
-- Teensyduino support files have to be patched in order to use precompiled libraries.
-- To solve Python errors on ESP32 compilation: `apt install python-is-python3 && pip3 install pyserial`

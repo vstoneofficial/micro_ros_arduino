@@ -1,4 +1,10 @@
 
+// Check before the legacy include guard, which is shared with other distros.
+#if defined(MICRO_ROS_ARDUINO_DISTRO_HUMBLE)
+#error "micro_ros_arduino: cannot mix Humble and Jazzy in one sketch"
+#endif
+#define MICRO_ROS_ARDUINO_DISTRO_JAZZY 1
+
 #ifndef MICRO_ROS_ARDUINO
 #define MICRO_ROS_ARDUINO
 

@@ -9,7 +9,7 @@
 #define ESP_AT_BAUDRATE 115200 // Baudrate setting in ESP-AT firmware(default is 115200)
 #define ESP_AT_RESET_PIN -1 // GPIO_PIN connected to ESP-AT's reset pin(-1 means not to use hardware reset)
 
-#include <micro_ros_arduino.h>
+#include <micro_ros_arduino_jazzy.h>
 
 #include <wifi_transport.cpp>
 
