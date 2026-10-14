@@ -1,24 +1,47 @@
 ---
-name: General issue
-about: General issue template for micro-ROS
+name: 不具合・動作に関するご報告
+about: ヴイストン版ライブラリの報告に必要な情報とお問い合わせ先
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
-## Issue template
+## お問い合わせ先
 
-- Hardware description: <!-- hardware where you are using micro-ROS -->
-- RTOS: <!-- RTOS where you are using micro-ROS -->
-- Installation type: <!-- micro_ros_setup, modules, etc  -->
-- Version or commit hash: <!-- version of micro-ROS used: foxy, rolling  -->
+ヴイストン製ロボットをご購入のお客様からの不具合のご報告やご相談は、
+[ヴイストンのお問い合わせ窓口](https://www.vstone.co.jp/contact/index.html)へお寄せください。
+お問い合わせ時には、以下の情報をお知らせください。
 
-#### Steps to reproduce the issue
-<!-- Detailed instructions on how to reliably reproduce this issue http://sscce.org/-->
+## 使用環境
 
-#### Expected behavior
+- 製品名：
+- ROS 2版（Humble / Jazzy）：
+- 配布ZIPのファイル名・ライブラリのバージョン：
+- 使用するボード：
+- Arduino IDEのバージョン：
+- Arduino-ESP32のバージョン：
+- PCのOSとバージョン：
+- micro-ROS Agentのバージョン：
+- 通信方法・接続構成：
 
-#### Actual behavior
+## 再現手順
 
-#### Additional information
+1. 起動前の状態や接続構成を記載してください。
+2. 問題が発生するまでの操作を順に記載してください。
+3. 発生する頻度や条件を記載してください。
+
+## 期待する動作
+
+どのように動作することを期待していたかを記載してください。
+
+## 実際の動作
+
+発生した現象を記載してください。
+
+## エラーログ
+
+コンパイル時、書き込み時、または実行時の関連するログを記載してください。
+
+```text
+ここにログを記載してください。
+```
